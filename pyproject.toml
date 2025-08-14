@@ -4,4 +4,12 @@ version = "0.0.1"
 description = "Unofficial Turkmenistan Railways API written in Python"
 readme = "README.md"
 requires-python = ">=3.8"
-dependencies = []
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "lxml>=6.0.0",
+    "requests>=2.32.4",
+]
+
+[[tool.uv.index]]
+url = "https://mirrors.sustech.edu.cn/pypi/web/simple"
+default = true
