@@ -56,15 +56,9 @@ class RWClient:
         date: datetime.datetime,
         adults: int,
         children: int = 0,
-        babies: int = 0,
-        two_way: bool = False,
-        return_date: Optional[datetime.datetime] = None,
     ) -> List[RWTrip]:
         """Search trips by given critteria"""
         date_str = date.strftime("%Y-%m-%d")
-        return_date_str = (
-            None if return_date is None else return_date.strftime("%Y-%m-%d")
-        )
 
         response = self._session.search_trips(
             src_location.id,
@@ -72,9 +66,6 @@ class RWClient:
             date_str,
             adults,
             children,
-            babies,
-            two_way,
-            return_date_str,
         )
         response_json = response.json()
         APIStatusError.raise_for_status(response_json)

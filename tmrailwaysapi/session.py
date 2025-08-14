@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 
 import requests
 
@@ -59,9 +59,6 @@ class RWSession(requests.Session):
         date: str,
         adults: int,
         children: int = 0,
-        babies: int = 0,
-        two_way: bool = False,
-        return_date: Optional[str] = None,
     ) -> requests.Response:
         return self.post(
             "/railway-api/trips",
