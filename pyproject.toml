@@ -1,7 +1,7 @@
 [project]
 name = "tmrailwaysapi"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.0.1"
+description = "Unofficial Turkmenistan Railways API written in Python"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.8"
 dependencies = []
