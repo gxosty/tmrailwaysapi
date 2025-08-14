@@ -1,9 +1,10 @@
-import json
+import datetime
 from typing import Optional, List
 
+from . import model_mappers
 from .session import RWSession
 from .constants import RWConstants
-from .models import RWLocation
+from .models import RWLocation, RWTrip
 from .exceptions import APIStatusError
 
 
@@ -23,7 +24,7 @@ class RWClient:
         APIStatusError.raise_for_status(json_data)
 
         for station in json_data["data"]["stations"]:
-            location = RWLocation(id=str(station["id"]), name=station["title_tm"])
+            location = model_mappers.location_from_json(station)
             self._locations.append(location)
 
     @property
@@ -32,7 +33,7 @@ class RWClient:
             self._fetch_locations()
         return self._locations
 
-    def get_location_by_id(self, location_id: str) -> Optional[RWLocation]:
+    def get_location_by_id(self, location_id: int) -> Optional[RWLocation]:
         """Gets location by id"""
         for location in self.locations:
             if location.id == location_id:
@@ -40,3 +41,47 @@ class RWClient:
 
         return None
 
+    def get_location_by_name(self, location_name: str) -> Optional[RWLocation]:
+        """Gets location by name"""
+        for location in self.locations:
+            if location.name == location_name:
+                return location
+
+        return None
+
+    def search_trips(
+        self,
+        src_location: RWLocation,
+        dest_location: RWLocation,
+        date: datetime.datetime,
+        adults: int,
+        children: int = 0,
+        babies: int = 0,
+        two_way: bool = False,
+        return_date: Optional[datetime.datetime] = None,
+    ) -> List[RWTrip]:
+        """Search trips by given critteria"""
+        date_str = date.strftime("%Y-%m-%d")
+        return_date_str = (
+            None if return_date is None else return_date.strftime("%Y-%m-%d")
+        )
+
+        response = self._session.search_trips(
+            src_location.id,
+            dest_location.id,
+            date_str,
+            adults,
+            children,
+            babies,
+            two_way,
+            return_date_str,
+        )
+        response_json = response.json()
+        APIStatusError.raise_for_status(response_json)
+        trips = []
+
+        for trip_data in response_json["data"]["trips"]:
+            trip = model_mappers.trip_from_json(trip_data)
+            trips.append(trip)
+
+        return trips

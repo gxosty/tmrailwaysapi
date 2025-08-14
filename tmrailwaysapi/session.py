@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 import requests
 
@@ -37,6 +37,12 @@ class RWSession(requests.Session):
         response.raise_for_status()
         return response
 
+    # override
+    def post(self, path: str = "", *args, **kwargs) -> requests.Response:
+        response = super().post("https://" + self._hostname + path, *args, **kwargs)
+        response.raise_for_status()
+        return response
+
     def get_hostname(self) -> str:
         return self._hostname
 
@@ -45,3 +51,25 @@ class RWSession(requests.Session):
 
     def get_stations(self) -> requests.Response:
         return self.get("/railway-api/stations")
+
+    def search_trips(
+        self,
+        src_location: int,
+        dest_location: int,
+        date: str,
+        adults: int,
+        children: int = 0,
+        babies: int = 0,
+        two_way: bool = False,
+        return_date: Optional[str] = None,
+    ) -> requests.Response:
+        return self.post(
+            "/railway-api/trips",
+            json={
+                "source": str(src_location),
+                "destination": str(dest_location),
+                "date": date,
+                "adult": adults,
+                "child": children,
+            },
+        )
