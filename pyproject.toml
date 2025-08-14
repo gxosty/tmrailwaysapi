@@ -5,8 +5,6 @@ description = "Unofficial Turkmenistan Railways API written in Python"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-    "beautifulsoup4>=4.13.4",
-    "lxml>=6.0.0",
     "requests>=2.32.4",
 ]
 
