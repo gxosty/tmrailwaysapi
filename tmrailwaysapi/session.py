@@ -42,3 +42,6 @@ class RWSession(requests.Session):
 
     def get_main_page(self) -> requests.Response:
         return self.get()
+
+    def get_stations(self) -> requests.Response:
+        return self.get("/railway-api/stations")
