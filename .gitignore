@@ -11,5 +11,5 @@ wheels/
 .venv
 
 # User files
-.python-version
+/.python-version
 main.py
