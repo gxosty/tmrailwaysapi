@@ -4,7 +4,7 @@ from typing import Optional, List
 from . import model_mappers
 from .session import RWSession
 from .constants import RWConstants
-from .models import RWLocation, RWTrip
+from .models import RWLocation, RWTrip, RWPriceSummary
 from .exceptions import APIStatusError
 
 
@@ -76,3 +76,13 @@ class RWClient:
             trips.append(trip)
 
         return trips
+
+    def get_price_summary(
+        self, outbound_trip: RWTrip, inbound_trip: Optional[RWTrip] = None
+    ) -> RWPriceSummary:
+        response = self._session.get_price_summary(
+            outbound_trip.id, inbound_trip.id if inbound_trip else 0
+        )
+        response_json = response.json()
+        APIStatusError.raise_for_status(response_json)
+        return model_mappers.price_summary_from_json(response_json["data"])

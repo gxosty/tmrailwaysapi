@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 import requests
 
@@ -69,4 +69,15 @@ class RWSession(requests.Session):
                 "adult": adults,
                 "child": children,
             },
+        )
+
+    def get_price_summary(
+        self, outbound_id: int, inbound_id: int = 0
+    ) -> requests.Response:
+        if inbound_id == 0:
+            return self.get(f"/railway-api/trips/{outbound_id}/price_summary?")
+
+        return self.get(
+            "/railway-api/roundtrips"
+            f"/outbound/{outbound_id}/inbound/{inbound_id}/price_summary?"
         )
