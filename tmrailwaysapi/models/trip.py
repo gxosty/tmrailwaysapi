@@ -39,3 +39,9 @@ class RWTrip:
         self.distance = distance
         self.wagon_types = wagon_types
         self.journeys = journeys
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return f"<RWTrip: from '{self.source}' to '{self.destination}'>"
