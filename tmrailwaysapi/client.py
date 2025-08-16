@@ -4,7 +4,7 @@ from typing import Optional, List
 from . import model_mappers
 from .session import RWSession
 from .constants import RWConstants
-from .models import RWLocation, RWTrip, RWPriceSummary
+from .models import RWLocation, RWTrip, RWPriceSummary, RWTripSeats, RWWagon
 from .exceptions import APIStatusError
 
 
@@ -80,9 +80,38 @@ class RWClient:
     def get_price_summary(
         self, outbound_trip: RWTrip, inbound_trip: Optional[RWTrip] = None
     ) -> RWPriceSummary:
+        """Get price summary for selected trips
+
+        Actually this does not really give you price summary.
+        All calculations has to be done manually on the client side.
+        This only returns prices for services like how much for an adult or child.
+        """
+
         response = self._session.get_price_summary(
-            outbound_trip.id, inbound_trip.id if inbound_trip else 0
+            outbound_trip.id, inbound_trip.id if inbound_trip is not None else -1
         )
         response_json = response.json()
         APIStatusError.raise_for_status(response_json)
         return model_mappers.price_summary_from_json(response_json["data"])
+
+    def get_seats(
+        self,
+        outbound_trip: RWTrip,
+        outbound_wagon: RWWagon,
+        adults: int,
+        children: int = 0,
+        inbound_trip: Optional[RWTrip] = None,
+        inbound_wagon: Optional[RWWagon] = None,
+    ) -> RWTripSeats:
+        """Get available seats for given wagons/trains"""
+        response = self._session.get_seats(
+            outbound_trip.id,
+            outbound_wagon.id,
+            adults,
+            children,
+            inbound_trip.id if inbound_trip is not None else -1,
+            inbound_wagon.id if inbound_wagon is not None else -1,
+        )
+        response_json = response.json()
+        APIStatusError.raise_for_status(response_json)
+        return model_mappers.seats_from_json(response_json["data"])

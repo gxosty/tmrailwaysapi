@@ -2,15 +2,20 @@ import datetime
 from typing import Dict, Any
 
 from .models import (
-    RWLocation,
-    RWTrip,
-    RWWagon,
     RWJourney,
-    RWPriceSummary,
-    RWTripPrice,
     RWJourneyPrice,
-    RWWagonPrice,
+    RWJourneySeats,
+    RWLocation,
     RWPrice,
+    RWPriceSummary,
+    RWSeat,
+    RWSeats,
+    RWTrip,
+    RWTripPrice,
+    RWTripSeats,
+    RWWagon,
+    RWWagonPrice,
+    RWWagonSeats,
 )
 
 
@@ -140,3 +145,70 @@ def price_summary_from_json(json_data: Dict[str, Any]) -> RWPriceSummary:
         inbound=inbound,
         price_formation=price_formation,
     )
+
+
+def seat_from_json(json_data: Dict[str, Any]) -> RWSeat:
+    return RWSeat(
+        id=json_data["id"],
+        available=json_data["available"],
+        label=json_data["label"],
+        level=int(json_data["level"]),
+    )
+
+
+def wagon_seats_from_json(json_data: Dict[str, Any]) -> RWWagonSeats:
+    seats = []
+
+    for seat_data in json_data["seats"]:
+        seat = seat_from_json(seat_data)
+        seats.append(seat)
+
+    return RWWagonSeats(
+        id=json_data["id"],
+        layout_map=json_data["layout_map"],
+        number=json_data["number"],
+        seats=seats,
+        wagon_type_id=json_data["wagon_type_id"],
+        wagon_type_title=json_data["wagon_type_title"]
+    )
+
+
+def journey_seats_from_json(json_data: Dict[str, Any]) -> RWJourneySeats:
+    train_wagons = []
+
+    for wagon_seats_data in json_data["train_wagons"]:
+        wagon_seats = wagon_seats_from_json(wagon_seats_data)
+        train_wagons.append(wagon_seats)
+
+    return RWJourneySeats(
+        id=json_data["id"],
+        source=json_data["source"],
+        destination=json_data["destination"],
+        departure_time=datetime.datetime.fromisoformat(json_data["departure_time"]),
+        arrival_time=datetime.datetime.fromisoformat(json_data["arrival_time"]),
+        travel_time=json_data["travel_time"],
+        train_run_number=json_data["train_run_number"],
+        service_type_id=json_data["service_type_id"],
+        service_type_title=json_data["service_type_title"],
+        distance=json_data["distance"],
+        train_wagons=train_wagons,
+    )
+
+
+def trip_seats_from_json(json_data: Dict[str, Any]) -> RWTripSeats:
+    journeys = []
+
+    for journey_seats_data in json_data["journeys"]:
+        journey_seats = journey_seats_from_json(journey_seats_data)
+        journeys.append(journey_seats)
+
+    return RWTripSeats(id=json_data["trip_id"], journeys=journeys)
+
+
+def seats_from_json(json_data: Dict[str, Any]) -> RWSeats:
+    outbound = trip_seats_from_json(json_data["outbound"])
+    inbound = (
+        trip_seats_from_json(json_data["inbound"]) if "inbound" in json_data else None
+    )
+
+    return RWSeats(outbound=outbound, inbound=inbound)

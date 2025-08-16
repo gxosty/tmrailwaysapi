@@ -6,18 +6,6 @@ from .journey import RWJourney
 
 
 class RWTrip:
-    __slots__ = [
-        "id",
-        "source",
-        "destination",
-        "departure_time",
-        "arrival_time",
-        "travel_time",
-        "distance",
-        "wagon_types",
-        "journeys",
-    ]
-
     def __init__(
         self,
         id: int,
@@ -45,3 +33,12 @@ class RWTrip:
 
     def __str__(self) -> str:
         return f"<RWTrip: from '{self.source}' to '{self.destination}'>"
+
+    def get_available_wagons(self) -> List[RWWagon]:
+        available_wagons = []
+
+        for wagon in self.wagon_types:
+            if wagon.has_seats:
+                available_wagons.append(wagon)
+
+        return available_wagons

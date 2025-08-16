@@ -72,12 +72,42 @@ class RWSession(requests.Session):
         )
 
     def get_price_summary(
-        self, outbound_id: int, inbound_id: int = 0
+        self, outbound_trip_id: int, inbound_trip_id: int = -1
     ) -> requests.Response:
-        if inbound_id == 0:
-            return self.get(f"/railway-api/trips/{outbound_id}/price_summary?")
+        if inbound_trip_id == -1:
+            return self.get(f"/railway-api/trips/{outbound_trip_id}/price_summary?")
 
         return self.get(
             "/railway-api/roundtrips"
-            f"/outbound/{outbound_id}/inbound/{inbound_id}/price_summary?"
+            f"/outbound/{outbound_trip_id}/inbound/{inbound_trip_id}/price_summary?"
+        )
+
+    def get_seats(
+        self,
+        outbound_trip_id: int,
+        outbound_wagon_id: int,
+        adults: int,
+        children: int,
+        inbound_trip_id: int = -1,
+        inbound_wagon_id: int = -1,
+    ) -> requests.Response:
+        if inbound_trip_id == -1:
+            return self.post(
+                f"/railway-api/trips/{outbound_trip_id}",
+                json={
+                    "adult": adults,
+                    "child": children,
+                    "outbound_wagon_type_id": outbound_wagon_id,
+                },
+            )
+
+        return self.post(
+            "/railway-api/roundtrips"
+            f"/outbound/{outbound_trip_id}/inbound/{inbound_trip_id}",
+            json={
+                "adult": adults,
+                "child": children,
+                "outbound_wagon_type_id": outbound_wagon_id,
+                "inbound_wagon_id": inbound_wagon_id,
+            },
         )
