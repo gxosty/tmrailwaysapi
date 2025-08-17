@@ -1,7 +1,10 @@
+from .booking import RWBooking
+from .contact import RWContact
 from .journey import RWJourney
 from .journey_price import RWJourneyPrice
 from .journey_seats import RWJourneySeats
 from .location import RWLocation
+from .passenger import RWPassenger
 from .price import RWPrice
 from .price_summary import RWPriceSummary
 from .seat import RWSeat
@@ -15,10 +18,13 @@ from .wagon_seats import RWWagonSeats
 
 
 __all__ = [
+    "RWBooking",
+    "RWContact",
     "RWJourney",
     "RWJourneyPrice",
     "RWJourneySeats",
     "RWLocation",
+    "RWPassenger",
     "RWPrice",
     "RWPriceSummary",
     "RWSeat",

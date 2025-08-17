@@ -4,7 +4,18 @@ from typing import Optional, List, Any
 from . import model_mappers
 from .session import RWSession
 from .constants import RWConstants
-from .models import RWLocation, RWTrip, RWPriceSummary, RWTripSeats, RWWagon
+from .models import (
+    RWContact,
+    RWJourneySeats,
+    RWLocation,
+    RWPassenger,
+    RWPriceSummary,
+    RWSeat,
+    RWTrip,
+    RWTripSeats,
+    RWWagon,
+    RWWagonSeats,
+)
 from .exceptions import APIStatusError
 
 
@@ -116,7 +127,20 @@ class RWClient:
         APIStatusError.raise_for_status(response_json)
         return model_mappers.seats_from_json(response_json["data"])
 
-    def book_tickets(self) -> Any:
+    def book_tickets(
+        self,
+        contact: RWContact,
+        passengers: List[RWPassenger],
+        outbound_journey: RWJourneySeats,
+        outbound_wagon: RWWagonSeats,
+        outbound_seat: RWSeat,
+        has_media_wifi: bool = False,
+        has_lunchbox: bool = False,
+        bedding_type: str = "default",
+        inbound_journey: Optional[RWJourneySeats] = None,
+        inbound_wagon: Optional[RWWagonSeats] = None,
+        inbound_seat: Optional[RWSeat] = None,
+    ) -> Any:
         """Proceed to booking tickets
 
         Example request/response (just a reference):
@@ -168,3 +192,45 @@ class RWClient:
             },
         }
         """
+
+        if inbound_journey and inbound_wagon and inbound_seat:
+            inbound_journey_id = inbound_journey.id
+            inbound_wagon_id = inbound_wagon.id
+            inbound_seat_id = inbound_seat.id
+        elif inbound_journey or inbound_wagon or inbound_seat:
+            raise ValueError(
+                "You are trying to book tickets, but not all `inbound_*` arguments are set"
+            )
+        else:
+            inbound_journey_id = inbound_wagon_id = inbound_seat_id = -1
+
+        response = self._session.book_tickets(
+            contact_mobile=contact.mobile,
+            contact_email=contact.email,
+            contact_main_contact=contact.main_contact,
+            passengers=[
+                {
+                    "name": passenger.name,
+                    "surname": passenger.surname,
+                    "dob": passenger.dob,
+                    "tariff": passenger.tariff,
+                    "gender": passenger.gender,
+                    "identity_type": passenger.identity_type,
+                    "identity_number": passenger.identity_number,
+                }
+                for passenger in passengers
+            ],
+            outbound_journey_id=outbound_journey.id,
+            outbound_wagon_id=outbound_wagon.id,
+            outbound_seat_id=outbound_seat.id,
+            api_client="web",
+            has_media_wifi=has_media_wifi,
+            has_lunchbox=has_lunchbox,
+            bedding_type=bedding_type,
+            inbound_journey_id=inbound_journey_id,
+            inbound_wagon_id=inbound_wagon_id,
+            inbound_seat_id=inbound_seat_id,
+        )
+        response_json = response.json()
+        APIStatusError.raise_for_status(response_json)
+        return model_mappers.booking_from_json(response_json["data"]["booking"])

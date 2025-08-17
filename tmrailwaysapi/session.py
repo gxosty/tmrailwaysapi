@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, List, Any
 
 import requests
 
@@ -108,6 +108,74 @@ class RWSession(requests.Session):
                 "adult": adults,
                 "child": children,
                 "outbound_wagon_type_id": outbound_wagon_id,
-                "inbound_wagon_id": inbound_wagon_id,
+                "inbound_wagon_type_id": inbound_wagon_id,
             },
         )
+
+    def book_tickets(
+        self,
+        contact_mobile: str,
+        contact_email: str,
+        contact_main_contact: str,
+        passengers: List[Dict[str, str]],
+        outbound_journey_id: int,
+        outbound_wagon_id: int,
+        outbound_seat_id: int,
+        api_client: str = "web",
+        has_media_wifi: bool = False,
+        has_lunchbox: bool = False,
+        bedding_type: str = "default",
+        inbound_journey_id: int = -1,
+        inbound_wagon_id: int = -1,
+        inbound_seat_id: int = -1,
+    ) -> requests.Response:
+        if (
+            inbound_journey_id != -1
+            and inbound_wagon_id != -1
+            and inbound_seat_id != -1
+        ):
+            inbound = {
+                "selected_journeys": [
+                    {
+                        "id": inbound_journey_id,
+                        "seats": [
+                            {
+                                "id": inbound_seat_id,
+                                "train_wagon_id": inbound_wagon_id,
+                            },
+                        ],
+                    },
+                ],
+            }
+        else:
+            inbound = None
+
+        json_data = {
+            "has_media_wifi": has_media_wifi,
+            "has_lunchbox": has_lunchbox,
+            "bedding_type": bedding_type,
+            "api_client": api_client,
+            "contact": {
+                "mobile": contact_mobile,
+                "email": contact_email,
+                "main_contact": contact_main_contact,
+            },
+            "passengers": passengers,
+            "outbound": {
+                "selected_journeys": [
+                    {
+                        "id": outbound_journey_id,
+                        "seats": [
+                            {
+                                "id": outbound_seat_id,
+                                "train_wagon_id": outbound_wagon_id,
+                            },
+                        ],
+                    },
+                ],
+            },
+            "inbound": inbound,
+        }
+
+        return self.post("/railway-api/bookings", json=json_data)
+        

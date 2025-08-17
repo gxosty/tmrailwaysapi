@@ -2,6 +2,7 @@ import datetime
 from typing import Dict, Any
 
 from .models import (
+    RWBooking,
     RWJourney,
     RWJourneyPrice,
     RWJourneySeats,
@@ -169,7 +170,7 @@ def wagon_seats_from_json(json_data: Dict[str, Any]) -> RWWagonSeats:
         number=json_data["number"],
         seats=seats,
         wagon_type_id=json_data["wagon_type_id"],
-        wagon_type_title=json_data["wagon_type_title"]
+        wagon_type_title=json_data["wagon_type_title"],
     )
 
 
@@ -212,3 +213,12 @@ def seats_from_json(json_data: Dict[str, Any]) -> RWSeats:
     )
 
     return RWSeats(outbound=outbound, inbound=inbound)
+
+
+def booking_from_json(json_data: Dict[str, Any]) -> RWBooking:
+    return RWBooking(
+        booking_number=json_data["booking_number"],
+        expire_time=datetime.datetime.fromisoformat(json_data["expire_time"]),
+        order_number=json_data["orderNumber"],  # why is it in camelCase?
+        form_url=json_data["formUrl"],
+    )

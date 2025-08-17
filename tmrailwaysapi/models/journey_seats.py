@@ -15,5 +15,3 @@ class RWJourneySeats(NamedTuple):
     train_run_number: int
     travel_time: int
     train_wagons: List[RWWagonSeats]
-
-
