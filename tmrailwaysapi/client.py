@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from . import model_mappers
 from .session import RWSession
@@ -115,3 +115,56 @@ class RWClient:
         response_json = response.json()
         APIStatusError.raise_for_status(response_json)
         return model_mappers.seats_from_json(response_json["data"])
+
+    def book_tickets(self) -> Any:
+        """Proceed to booking tickets
+
+        Example request/response (just a reference):
+
+        Request json:
+        {
+            "has_media_wifi": True,
+            "has_lunchbox": False,
+            "bedding_type": "default",
+            "api_client": "web",
+            "contact": {
+                "mobile": "+99364232437",
+                "email": "mben333@gmail.com",
+                "main_contact": "Mathew Benedict",
+            },
+            "passengers": [
+                {
+                    "name": "Mathew",
+                    "surname": "Benedict",
+                    "dob": "17-03-1998",
+                    "tariff": "adult",
+                    "gender": "male",
+                    "identity_type": "passport",
+                    "identity_number": "I-AS 23247",
+                }
+            ],
+            "outbound": {
+                "selected_journeys": [
+                    {"id": 7298282, "seats": [{"id": 73, "train_wagon_id": 350186}]}
+                ]
+            },
+            "inbound": {
+                "selected_journeys": [
+                    {"id": 7311715, "seats": [{"id": 85, "train_wagon_id": 350259}]}
+                ]
+            },
+        }
+
+        Response json:
+        {
+            "success": True,
+            "data": {
+                "booking": {
+                    "booking_number": "NKXNCZ",
+                    "expire_time": "2025-08-17T18:14:46.547555+05:00",
+                    "orderNumber": "NKXNCZ-17082025175946",
+                    "formUrl": "https://mpi.gov.tm/payment/merchants/online/payment_ru.html?mdOrder=c03365ad-af93-4ccf-85d3-3d3a3ae129d5",
+                }
+            },
+        }
+        """
