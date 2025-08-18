@@ -5,6 +5,7 @@ description = "Unofficial Turkmenistan Railways API written in Python"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
+    "aiohttp>=3.10.11",
     "requests>=2.32.4",
 ]
 
@@ -12,3 +13,7 @@ dependencies = [
 dev = [
     "pytest>=8.3.5",
 ]
+
+[[tool.uv.index]]
+url = "https://mirrors.sustech.edu.cn/pypi/web/simple"
+default = true
