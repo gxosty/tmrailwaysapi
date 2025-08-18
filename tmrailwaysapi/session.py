@@ -178,4 +178,3 @@ class RWSession(requests.Session):
         }
 
         return self.post("/railway-api/bookings", json=json_data)
-        

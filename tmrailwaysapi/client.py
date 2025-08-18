@@ -212,7 +212,7 @@ class RWClient:
                 {
                     "name": passenger.name,
                     "surname": passenger.surname,
-                    "dob": passenger.dob,
+                    "dob": passenger.dob.strftime("%d-%m-%Y"),
                     "tariff": passenger.tariff,
                     "gender": passenger.gender,
                     "identity_type": passenger.identity_type,
