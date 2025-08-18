@@ -1,66 +1,53 @@
-from typing import Dict, List
+from typing import Dict, List, Awaitable
 
-import requests
+import asyncio
+import aiohttp
+
+from .session import RWSession
 
 
-class RWSession(requests.Session):
-    def __init__(self, *args, hostname: str, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+class RWAsyncSession:
+    """The async version of RWSession"""
+
+    def __init__(self, hostname: str) -> None:
         self._hostname = hostname
 
-        self.headers.update(RWSession.get_default_headers())
+        self._client_session = aiohttp.ClientSession(
+            headers=RWSession.get_default_headers(), raise_for_status=True
+        )
 
-    @staticmethod
-    def get_default_headers() -> Dict[str, str]:
-        """Get default browser headers"""
-        headers = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-            "Accept-Language": "en-US;en;q=0.9,tk;q=0.8",
-            "Cache-Control": "max-age=0",
-            "Dnt": "1",
-            "Sec-Ch-Ua": '"Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"',
-            "Sec-Ch-Ua-Mobile": "?0",
-            "Sec-Ch-Ua-Platform": '"Windows"',
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "same-origin",
-            "Sec-Fetch-User": "?1",
-            "Upgrade-Insecute-Requests": "1",
-            "User-Agent": "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
-        }
+    async def _close(self) -> Awaitable:
+        await self._client_session.close()
+        await asyncio.sleep(1)
 
-        return headers
+    async def get(self, path: str = "", *args, **kwargs) -> Awaitable[aiohttp.ClientResponse]:
+        return await self._client_session.get(
+            "https://" + self._hostname + path, *args, **kwargs
+        )
 
-    # override
-    def get(self, path: str = "", *args, **kwargs) -> requests.Response:
-        response = super().get("https://" + self._hostname + path, *args, **kwargs)
-        response.raise_for_status()
-        return response
-
-    # override
-    def post(self, path: str = "", *args, **kwargs) -> requests.Response:
-        response = super().post("https://" + self._hostname + path, *args, **kwargs)
-        response.raise_for_status()
-        return response
+    async def post(self, path: str = "", *args, **kwargs) -> Awaitable[aiohttp.ClientResponse]:
+        return await self._client_session.post(
+            "https://" + self._hostname + path, *args, **kwargs
+        )
 
     def get_hostname(self) -> str:
         return self._hostname
 
-    def get_main_page(self) -> requests.Response:
-        return self.get()
+    async def get_main_page(self) -> Awaitable[aiohttp.ClientResponse]:
+        return await self.get()
 
-    def get_stations(self) -> requests.Response:
-        return self.get("/railway-api/stations")
+    async def get_stations(self) -> Awaitable[aiohttp.ClientResponse]:
+        return await self.get("/railway-api/stations")
 
-    def search_trips(
+    async def search_trips(
         self,
         src_location: int,
         dest_location: int,
         date: str,
         adults: int,
         children: int = 0,
-    ) -> requests.Response:
-        return self.post(
+    ) -> Awaitable[aiohttp.ClientResponse]:
+        return await self.post(
             "/railway-api/trips",
             json={
                 "source": str(src_location),
@@ -71,18 +58,18 @@ class RWSession(requests.Session):
             },
         )
 
-    def get_price_summary(
+    async def get_price_summary(
         self, outbound_trip_id: int, inbound_trip_id: int = -1
-    ) -> requests.Response:
+    ) -> Awaitable[aiohttp.ClientResponse]:
         if inbound_trip_id == -1:
-            return self.get(f"/railway-api/trips/{outbound_trip_id}/price_summary?")
+            return await self.get(f"/railway-api/trips/{outbound_trip_id}/price_summary?")
 
-        return self.get(
+        return await self.get(
             "/railway-api/roundtrips"
             f"/outbound/{outbound_trip_id}/inbound/{inbound_trip_id}/price_summary?"
         )
 
-    def get_seats(
+    async def get_seats(
         self,
         outbound_trip_id: int,
         outbound_wagon_id: int,
@@ -90,9 +77,9 @@ class RWSession(requests.Session):
         children: int,
         inbound_trip_id: int = -1,
         inbound_wagon_id: int = -1,
-    ) -> requests.Response:
+    ) -> Awaitable[aiohttp.ClientResponse]:
         if inbound_trip_id == -1:
-            return self.post(
+            return await self.post(
                 f"/railway-api/trips/{outbound_trip_id}",
                 json={
                     "adult": adults,
@@ -101,7 +88,7 @@ class RWSession(requests.Session):
                 },
             )
 
-        return self.post(
+        return await self.post(
             "/railway-api/roundtrips"
             f"/outbound/{outbound_trip_id}/inbound/{inbound_trip_id}",
             json={
@@ -112,7 +99,7 @@ class RWSession(requests.Session):
             },
         )
 
-    def book_tickets(
+    async def book_tickets(
         self,
         contact_mobile: str,
         contact_email: str,
@@ -128,7 +115,7 @@ class RWSession(requests.Session):
         inbound_journey_id: int = -1,
         inbound_wagon_id: int = -1,
         inbound_seat_id: int = -1,
-    ) -> requests.Response:
+    ) -> Awaitable[aiohttp.ClientResponse]:
         if (
             inbound_journey_id != -1
             and inbound_wagon_id != -1
@@ -177,4 +164,4 @@ class RWSession(requests.Session):
             "inbound": inbound,
         }
 
-        return self.post("/railway-api/bookings", json=json_data)
+        return await self.post("/railway-api/bookings", json=json_data)
